@@ -57,6 +57,7 @@ public class SecurityConfig {
                                 "/images/**",
                                 "/uploads/**",
                                 "/favicon.ico",
+                                "/healthz",
                                 "/api/auth/registrar",
                                 "/perform_login"
                         ).permitAll()
