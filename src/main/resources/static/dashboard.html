@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reserva de Chácaras — São Francisco &amp; Magnólia</title>
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              200: '#a7f3d0',
+              400: '#34d399',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+              800: '#065f46',
+              900: '#064e3b'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Estilos customizados e efeito de iluminação suave -->
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body class="bg-[#f8fafc] text-slate-800 min-h-screen selection:bg-emerald-100 selection:text-emerald-900">
+
+  <!-- Efeito Interativo Spotlight / Cursor Suave -->
+  <div id="cursorGlow" class="cursor-glow"></div>
+  <div class="bg-ambient-1"></div>
+  <div class="bg-ambient-2"></div>
+
+  <!-- Barra de Notificação Toast Flutuante -->
+  <div id="toastContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-2 max-w-sm pointer-events-none"></div>
+
+  <!-- Header Superior Clean -->
+  <header class="relative z-10 border-b border-slate-200/80 bg-white/95 backdrop-blur-xl sticky top-0 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex justify-between items-center">
+      
+      <!-- Marca / Logo -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center shadow-md shadow-emerald-600/20 text-white">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="font-extrabold text-base sm:text-lg tracking-tight text-slate-900 flex items-center gap-1.5">
+              Chácaras <span class="text-emerald-600">Exclusivas</span>
+            </h1>
+            <span class="hidden sm:inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-700">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 live-dot"></span>
+              Tempo Real
+            </span>
+          </div>
+          <p class="text-xs text-slate-500 hidden sm:block font-medium">São Francisco &bull; Magnólia &bull; Diárias Consecutivas</p>
+        </div>
+      </div>
+
+      <!-- Área do Usuário & Logout -->
+      <div class="flex items-center gap-3">
+        <div class="text-right hidden sm:block">
+          <p id="usuarioLogadoNome" class="text-xs font-bold text-slate-800">Carregando...</p>
+          <p id="usuarioLogadoEmail" class="text-[11px] text-emerald-600 font-medium">usuário</p>
+        </div>
+        
+        <form action="/logout" method="POST" class="inline">
+          <button type="submit" title="Encerrar sessão" class="flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200/80 border border-slate-200 px-3 py-2 rounded-xl transition duration-150">
+            <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            <span class="hidden xs:inline">Sair</span>
+          </button>
+        </form>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Conteúdo Principal -->
+  <main class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- Seletor de Chácaras Clean -->
+    <div class="mb-6">
+      <div class="flex items-center justify-between mb-2.5">
+        <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500">Escolha a Chácara</h2>
+        <span id="statusAtualizacao" class="text-[11px] font-medium text-slate-400">Sincronizado</span>
+      </div>
+
+      <!-- Container dos cards de chácaras -->
+      <div id="chacaraButtons" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Preenchido dinamicamente com as fotos via agenda.js -->
+        <div class="h-28 bg-white rounded-2xl animate-pulse border border-slate-200 shadow-sm"></div>
+        <div class="h-28 bg-white rounded-2xl animate-pulse border border-slate-200 shadow-sm"></div>
+      </div>
+    </div>
+
+    <!-- Layout em Grid de 2 Colunas -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+      <!-- COLUNA ESQUERDA: Calendário Interativo tipo Agenda (Airbnb style) -->
+      <div class="lg:col-span-7 flex flex-col gap-4">
+
+        <!-- Card do Calendário -->
+        <div class="glass-card p-5 sm:p-6 bg-white border border-slate-200/90 shadow-sm">
+          
+          <!-- Cabeçalho do Calendário (Mês, Navegação e Botão Hoje) -->
+          <div class="flex items-center justify-between mb-5">
+            <div>
+              <span class="text-xs font-bold text-emerald-600 uppercase tracking-wider">Disponibilidade</span>
+              <h3 id="mesAnoTitulo" class="text-lg sm:text-xl font-extrabold text-slate-900 capitalize mt-0.5">
+                Carregando calendário...
+              </h3>
+            </div>
+
+            <div class="flex items-center gap-1.5 bg-slate-100/90 p-1 rounded-xl border border-slate-200/80">
+              <button id="btnMesAnterior" title="Mês anterior" class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-600 hover:text-slate-900 hover:bg-white transition shadow-none hover:shadow-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              
+              <button id="btnMesAtual" class="px-2.5 py-1 text-xs font-bold text-emerald-700 hover:text-emerald-800 hover:bg-white rounded-lg transition shadow-none hover:shadow-sm">
+                Hoje
+              </button>
+
+              <button id="btnMesProximo" title="Próximo mês" class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-600 hover:text-slate-900 hover:bg-white transition shadow-none hover:shadow-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Cabeçalho dos Dias da Semana -->
+          <div class="calendar-grid mb-2">
+            <div class="calendar-day-header text-rose-500">Dom</div>
+            <div class="calendar-day-header">Seg</div>
+            <div class="calendar-day-header">Ter</div>
+            <div class="calendar-day-header">Qua</div>
+            <div class="calendar-day-header">Qui</div>
+            <div class="calendar-day-header">Sex</div>
+            <div class="calendar-day-header text-emerald-600">Sáb</div>
+          </div>
+
+          <!-- Grade dos Dias do Mês -->
+          <div id="calendarGrid" class="calendar-grid min-h-[290px]">
+            <!-- Preenchido interativamente via JS (com suporte a seleção de período estilo Airbnb) -->
+          </div>
+
+          <!-- Legenda de Cores e Instruções -->
+          <div class="mt-5 pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500">
+            <div class="flex items-center gap-4">
+              <span class="flex items-center gap-1.5 font-medium">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                Livre
+              </span>
+              <span class="flex items-center gap-1.5 font-medium">
+                <span class="w-2.5 h-2.5 rounded-full bg-rose-400"></span>
+                Ocupado
+              </span>
+              <span class="flex items-center gap-1.5 font-medium">
+                <span class="w-2.5 h-2.5 rounded-full bg-slate-300"></span>
+                Passado
+              </span>
+            </div>
+            <span id="dicaSelecaoCalendario" class="text-[11px] text-emerald-700 font-semibold bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
+              💡 Clique no check-in e depois no check-out para reservar vários dias
+            </span>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- COLUNA DIREITA: Card de Agendamento (STICKY - NUNCA SAI DA TELA!) -->
+      <div class="lg:col-span-5 flex flex-col gap-5 sticky top-20">
+
+        <!-- Card de Reserva Clean -->
+        <div class="glass-card p-5 sm:p-6 bg-white border border-slate-200/90 shadow-sm overflow-hidden">
+          
+          <!-- Banner Fotográfico da Chácara -->
+          <div class="relative h-32 -mx-5 -mt-5 sm:-mx-6 sm:-mt-6 mb-4 overflow-hidden group">
+            <img id="bannerFotoChacara" src="/images/chacara_sao_francisco.png" alt="Foto da Chácara" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+            <div class="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/20 to-transparent"></div>
+            
+            <div class="absolute bottom-2.5 left-4 right-4 flex items-center justify-between">
+              <div>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-300 drop-shadow">Reserva de Diárias</span>
+                <h3 class="text-sm sm:text-base font-extrabold text-white drop-shadow">
+                  <span id="nomeChacaraReserva">São Francisco</span>
+                </h3>
+              </div>
+
+              <!-- Ações da Foto: Alterar PNG e Baixar PNG -->
+              <div class="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  id="btnAlterarFotoBanner"
+                  class="flex items-center gap-1 text-[10px] font-bold bg-white/90 hover:bg-white text-slate-800 border border-white/50 px-2 py-1.5 rounded-lg shadow transition cursor-pointer"
+                  title="Alterar a foto desta chácara (PNG)">
+                  <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l4-4m0 0l4 4m-4-4v12" />
+                  </svg>
+                  <span>Alterar PNG</span>
+                </button>
+                <input type="file" id="inputUploadBanner" accept="image/png,image/jpeg,image/webp" class="hidden">
+
+                <a id="linkDownloadBannerPng" href="/images/chacara_sao_francisco.png" download="chacara_sao_francisco.png" class="flex items-center gap-1 text-[10px] font-bold bg-white/90 hover:bg-white text-slate-800 border border-white/50 px-2 py-1.5 rounded-lg shadow transition cursor-pointer" title="Baixar foto em PNG">
+                  <svg class="w-3.5 h-3.5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  <span>Baixar PNG</span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card de Destaque do Período Selecionado (Airbnb Style) -->
+          <div id="boxDataSelecionada" class="mb-4 p-3.5 rounded-xl bg-emerald-50/70 border border-emerald-200/80 flex items-center justify-between transition-all">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-lg bg-emerald-600 text-white flex items-center justify-center shadow-sm">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <div>
+                <p class="text-[11px] font-bold text-emerald-800 uppercase tracking-wider">Período da Reserva</p>
+                <p id="dataSelecionadaTexto" class="text-sm font-extrabold text-slate-900">
+                  Selecione os dias no calendário
+                </p>
+              </div>
+            </div>
+            
+            <button id="btnLimparSelecaoDatas" type="button" class="hidden text-xs font-bold text-slate-500 hover:text-rose-600 bg-white px-2 py-1 rounded-lg border border-slate-200 shadow-sm transition" title="Limpar seleção de datas">
+              Limpar
+            </button>
+
+            <input type="hidden" id="dataInicioReserva" value="">
+            <input type="hidden" id="dataFimReserva" value="">
+          </div>
+
+          <!-- Formulário de Reserva -->
+          <div class="space-y-3">
+            <div>
+              <label for="nomeCliente" class="block text-xs font-bold text-slate-700 mb-1">
+                Nome do Cliente / Responsável
+              </label>
+              <input
+                type="text"
+                id="nomeCliente"
+                placeholder="Ex: João da Silva"
+                maxlength="100"
+                class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition shadow-sm font-medium">
+            </div>
+
+            <div>
+              <label for="telefoneCliente" class="block text-xs font-bold text-slate-700 mb-1">
+                Telefone / WhatsApp
+              </label>
+              <input
+                type="tel"
+                id="telefoneCliente"
+                placeholder="(00) 00000-0000"
+                maxlength="20"
+                class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition shadow-sm font-medium">
+            </div>
+
+            <!-- Botão de Ação: NUNCA SAI DA TELA -->
+            <button
+              id="btnAgendar"
+              class="w-full mt-2 btn-glow text-white font-extrabold py-3.5 px-4 rounded-xl text-sm flex items-center justify-center gap-2 cursor-pointer transition shadow-md">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              <span id="btnAgendarTexto">Confirmar Reserva</span>
+            </button>
+          </div>
+
+          <p id="msgAgendamento" class="text-xs text-center mt-3 hidden"></p>
+        </div>
+
+        <!-- Card de Lista de Próximas Reservas -->
+        <div class="glass-card p-4 sm:p-5 bg-white border border-slate-200/90 shadow-sm">
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700">
+              Reservas Confirmadas &bull; <span id="nomeChacaraLista" class="text-emerald-700 font-extrabold">...</span>
+            </h4>
+            <span id="contadorReservas" class="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">0 reservas</span>
+          </div>
+
+          <!-- Lista de Reservas -->
+          <div id="listaAgendamentos" class="space-y-2 max-h-60 overflow-y-auto pr-1">
+            <div class="text-center py-6 text-slate-400 text-xs">Carregando agendamentos...</div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- MODAL PARA ALTERAR AGENDAMENTO -->
+  <div id="modalEditar" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-white w-full max-w-md p-6 rounded-2xl border border-slate-200 shadow-2xl animate-scale-in">
+      <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-100">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+            </svg>
+          </div>
+          <h3 class="font-bold text-slate-900 text-base">Alterar Reserva</h3>
+        </div>
+        <button id="btnFecharModalEditar" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <input type="hidden" id="editAgendamentoId">
+
+      <div class="space-y-3.5">
+        <!-- Chácara -->
+        <div>
+          <label for="editChacaraId" class="block text-xs font-bold text-slate-700 mb-1">Chácara</label>
+          <select id="editChacaraId" class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-emerald-500 transition shadow-sm font-medium">
+            <!-- Preenchido via JS -->
+          </select>
+        </div>
+
+        <!-- Período: Check-in e Check-out -->
+        <div class="grid grid-cols-2 gap-2.5">
+          <div>
+            <label for="editDataInicio" class="block text-xs font-bold text-slate-700 mb-1">Check-in (Início)</label>
+            <input type="date" id="editDataInicio" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-emerald-500 transition shadow-sm font-medium">
+          </div>
+          <div>
+            <label for="editDataFim" class="block text-xs font-bold text-slate-700 mb-1">Check-out (Fim)</label>
+            <input type="date" id="editDataFim" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-emerald-500 transition shadow-sm font-medium">
+          </div>
+        </div>
+
+        <!-- Nome do Cliente -->
+        <div>
+          <label for="editNomeCliente" class="block text-xs font-bold text-slate-700 mb-1">Nome do Cliente</label>
+          <input type="text" id="editNomeCliente" maxlength="100" class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-emerald-500 transition shadow-sm font-medium">
+        </div>
+
+        <!-- Telefone do Cliente -->
+        <div>
+          <label for="editTelefoneCliente" class="block text-xs font-bold text-slate-700 mb-1">Telefone / WhatsApp</label>
+          <input type="tel" id="editTelefoneCliente" maxlength="20" class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-emerald-500 transition shadow-sm font-medium">
+        </div>
+
+        <!-- Botões de Ação no Modal -->
+        <div class="flex gap-2 pt-2">
+          <button id="btnSalvarEdicao" class="flex-1 btn-glow text-white font-bold py-2.5 px-4 rounded-xl text-sm flex items-center justify-center gap-2 transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            <span>Salvar Alterações</span>
+          </button>
+
+          <button id="btnExcluirDoModal" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 font-bold py-2.5 px-3 rounded-xl text-sm flex items-center justify-center transition" title="Excluir Reserva">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Script da Aplicação -->
+  <script src="/js/agenda.js"></script>
+</body>
+</html>

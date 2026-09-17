@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: agendamento-chacaras
+    env: docker
+    plan: free
+    region: oregon
+    dockerfilePath: Dockerfile
+    healthCheckPath: /login.html
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: COOKIE_SECURE
+        value: true
+      - key: ADMIN_EMAIL
+        value: admin@chacaras.com
+      - key: ADMIN_PASSWORD
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: agendamento-db
+          property: connectionString
+
+databases:
+  - name: agendamento-db
+    plan: free
+    region: oregon
+    databaseName: agendamento_chacaras
+    user: chacaras_admin

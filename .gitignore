@@ -1,0 +1,17 @@
+target/
+*.class
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.classpath
+.project
+*.eml
+data/
+*.mv.db
+*.trace.db
+.DS_Store
+HELP.md
+meucodigo.txt
+uploads/

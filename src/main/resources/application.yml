@@ -1,0 +1,48 @@
+server:
+  port: ${PORT:8080}
+  forward-headers-strategy: framework
+  error:
+    include-message: never
+    include-binding-errors: never
+    include-stacktrace: never
+  servlet:
+    session:
+      cookie:
+        secure: ${COOKIE_SECURE:false}
+        http-only: true
+        same-site: lax
+
+spring:
+  application:
+    name: agendamento-chacaras
+
+  datasource:
+    # Desenvolvimento local padrão: H2 em arquivo ./data/agendamento
+    # Produção (Render) ou Postgres: auto-configurado conforme DATABASE_URL
+    url: ${DATABASE_URL:jdbc:h2:file:./data/agendamento;DB_CLOSE_ON_EXIT=FALSE;AUTO_RECONNECT=TRUE}
+    username: ${DB_USER:sa}
+    password: ${DB_PASSWORD:}
+
+  h2:
+    console:
+      enabled: ${H2_CONSOLE_ENABLED:false}
+      path: /h2-console
+      settings:
+        web-allow-others: false
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
+logging:
+  level:
+    org.springframework.security: WARN
+    com.portfolio.agendamento: INFO
